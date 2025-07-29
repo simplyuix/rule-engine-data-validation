@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Data Validation System</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .status-indicator {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            padding: 5px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+
+        .status-connected {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-disconnected {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0;
+            min-height: 600px;
+        }
+
+        .screen {
+            padding: 40px;
+            position: relative;
+        }
+
+        .screen-1 {
+            border-right: 2px solid #f0f0f0;
+            background: #fafafa;
+        }
+
+        .screen-2 {
+            background: white;
+        }
+
+        .screen-title {
+            font-size: 1.5rem;
+            font-weight: 600;
+            margin-bottom: 25px;
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .screen-number {
+            background: #4facfe;
+            color: white;
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            font-weight: bold;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #555;
+        }
+
+        .form-group input,
+        .form-group select,
+        .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus,
+        .form-group select:focus,
+        .form-group textarea:focus {
+            outline: none;
+            border-color: #4facfe;
+        }
+
+        .rule-builder {
+            background: white;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border: 2px solid #e1e5e9;
+        }
+
+        .rule-item {
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .rule-item:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        .rule-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr auto;
+            gap: 10px;
+            align-items: end;
+        }
+
+        .logical-operator {
+            text-align: center;
+            font-weight: bold;
+            color: #4facfe;
+            padding: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+            color: white;
+        }
+
+        .btn-primary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(79, 172, 254, 0.4);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #666;
+            border: 2px solid #e1e5e9;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+        }
+
+        .btn-danger {
+            background: #ff4757;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #ff3742;
+        }
+
+        .btn-small {
+            padding: 8px 12px;
+            font-size: 12px;
+        }
+
+        .validation-results {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-top: 20px;
+        }
+
+        .result-summary {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+
+        .summary-card {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            border: 2px solid #e1e5e9;
+        }
+
+        .summary-number {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+
+        .summary-label {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .total { color: #333; }
+        .valid { color: #28a745; }
+        .invalid { color: #dc3545; }
+
+        .transaction-results {
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            border: 2px solid #e1e5e9;
+        }
+
+        .result-header {
+            background: #f8f9fa;
+            padding: 15px;
+            font-weight: 600;
+            border-bottom: 2px solid #e1e5e9;
+        }
+
+        .result-item {
+            padding: 15px;
+            border-bottom: 1px solid #e1e5e9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .transaction-info {
+            flex: 1;
+        }
+
+        .transaction-number {
+            font-weight: 600;
+            margin-bottom: 5px;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+
+        .status-valid {
+            background: #d4edda;
+            color: #155724;
+        }
+
+        .status-invalid {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        .error-details {
+            font-size: 12px;
+            color: #dc3545;
+            margin-top: 5px;
+        }
+
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #666;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4facfe;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .add-rule-btn {
+            width: 100%;
+            margin-top: 15px;
+        }
+
+        .debug-info {
+            background: #f8f9fa;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 10px;
+            margin-top: 10px;
+            font-family: monospace;
+            font-size: 12px;
+            color: #666;
+        }
+
+        .alert {
+            padding: 15px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+            border-radius: 4px;
+        }
+
+        .alert-success {
+            color: #155724;
+            background-color: #d4edda;
+            border-color: #c3e6cb;
+        }
+
+        .alert-danger {
+            color: #721c24;
+            background-color: #f8d7da;
+            border-color: #f5c6cb;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .screen-1 {
+                border-right: none;
+                border-bottom: 2px solid #f0f0f0;
+            }
+            
+            .rule-row {
+                grid-template-columns: 1fr;
+                gap: 10px;
+            }
+            
+            .result-summary {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="status-indicator" id="connectionStatus">🔄 Checking...</div>
+            <h1>Data Validation System</h1>
+            <p>Define validation rules and apply them to transaction data</p>
+        </div>
+
+        <div class="main-content">
+           
+            <div class="screen screen-1">
+                <div class="screen-title">
+                    <span class="screen-number">1</span>
+                    Define Validation Rules
+                </div>
+
+                <div id="alerts"></div>
+
+                <form id="ruleForm">
+                    <div class="form-group">
+                        <label for="ruleSetName">Rule Set Name *</label>
+                        <input type="text" id="ruleSetName" placeholder="Enter rule set name" value="Demo Rules" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ruleSetDescription">Description</label>
+                        <textarea id="ruleSetDescription" rows="2" placeholder="Describe your validation rules">Amount < 10 AND Memo starts with 'a'</textarea>
+                    </div>
+
+                    <div class="rule-builder">
+                        <div id="rulesContainer">
+                          
+                        </div>
+                        <button type="button" class="btn btn-secondary add-rule-btn" onclick="addRule()">
+                            ➕ Add Rule
+                        </button>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" id="createRuleBtn">
+                        💾 Create Rule Set
+                    </button>
+                </form>
+
+                <div class="debug-info" id="debugInfo" style="display: none;">
+                    <strong>Debug Info:</strong><br>
+                    <span id="debugContent"></span>
+                </div>
+            </div>
+
+         
+            <div class="screen screen-2">
+                <div class="screen-title">
+                    <span class="screen-number">2</span>
+                    Validation Results
+                </div>
+
+               
+<div class="form-group" style="margin-top: 20px;">
+    <label for="dateFilter">Date Filter (Optional)</label>
+    <select id="dateFilterType" onchange="toggleDateInputs()" style="width: 100%; padding: 8px; margin-bottom: 10px;">
+        <option value="">All time</option>
+        <option value="last_days">Last X days</option>
+        <option value="last_months">Last X months</option>
+        <option value="current_month">Current month</option>
+        <option value="current_year">Current year</option>
+        <option value="date_range">Date range</option>
+        <option value="before_date">Before date</option>
+        <option value="after_date">After date</option>
+    </select>
+    
+   
+    <div id="dateInputs" style="display: none;">
+        <input type="number" id="dayMonthValue" placeholder="Enter number" style="width: 100%; padding: 8px; margin-bottom: 5px; display: none;">
+        <input type="date" id="startDate" placeholder="Start date" style="width: 48%; padding: 8px; margin-right: 4%; display: none;">
+        <input type="date" id="endDate" placeholder="End date" style="width: 48%; padding: 8px; display: none;">
+        <input type="date" id="singleDate" placeholder="Select date" style="width: 100%; padding: 8px; display: none;">
+    </div>
+</div>
+
+                <button class="btn btn-primary" onclick="validateTransactions()" id="validateBtn" disabled>
+                    🔍 Validate All Transactions
+                </button>
+                <button class="btn btn-secondary" onclick="queryTransactions()" id="queryBtn" disabled style="margin-left: 10px;">
+     Query Matching Transactions
+</button>
+
+                <div id="validationResults" class="validation-results" style="display: none;">
+                    <div class="result-summary">
+                        <div class="summary-card">
+                            <div class="summary-number total" id="totalCount">0</div>
+                            <div class="summary-label">Total</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-number valid" id="validCount">0</div>
+                            <div class="summary-label">Valid</div>
+                        </div>
+                        <div class="summary-card">
+                            <div class="summary-number invalid" id="invalidCount">0</div>
+                            <div class="summary-label">Invalid</div>
+                        </div>
+                    </div>
+
+                    <div class="transaction-results">
+                        <div class="result-header">Transaction Results</div>
+                        <div id="resultsContainer">
+                          
+                        </div>
+                    </div>
+                </div>
+
+                <div id="loadingIndicator" class="loading" style="display: none;">
+                    <div class="spinner"></div>
+                    <p>Validating transactions...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+       
+        const API_BASE = 'http://localhost:5002/api/validation-rules';
+        let currentRuleSetId = null;
+        let ruleCount = 0;
+        let debugMode = true; 
+
+     
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log(' Frontend loaded');
+            checkBackendConnection();
+            addRule('amount', '<', '10', 'AND');
+            addRule('memo', 'starts with', 'a', null);
+            
+            if (debugMode) {
+                document.getElementById('debugInfo').style.display = 'block';
+            }
+        });
+
+      
+        async function checkBackendConnection() {
+            const statusEl = document.getElementById('connectionStatus');
+            try {
+                const response = await fetch('http://localhost:5002', {
+                    method: 'GET',
+                    mode: 'cors'
+                });
+                if (response.ok) {
+                    statusEl.textContent = ' Connected';
+                    statusEl.className = 'status-indicator status-connected';
+                    updateDebug(' Backend connection successful');
+                } else {
+                    throw new Error('Backend not responding');
+                }
+            } catch (error) {
+                statusEl.textContent = ' Disconnected';
+                statusEl.className = 'status-indicator status-disconnected';
+                updateDebug(' Backend connection failed: ' + error.message);
+                showAlert('Cannot connect to backend server. Make sure it\'s running on port 5002.', 'danger');
+            }
+        }
+
+       
+        function updateDebug(message) {
+            if (debugMode) {
+                const debugEl = document.getElementById('debugContent');
+                const timestamp = new Date().toLocaleTimeString();
+                debugEl.innerHTML += `<br>[${timestamp}] ${message}`;
+            }
+            console.log(message);
+        }
+
+      
+        function showAlert(message, type = 'success') {
+            const alertsEl = document.getElementById('alerts');
+            const alert = document.createElement('div');
+            alert.className = `alert alert-${type}`;
+            alert.innerHTML = message;
+            alertsEl.appendChild(alert);
+            
+            setTimeout(() => {
+                alert.remove();
+            }, 5000);
+        }
+
+       
+        function addRule(fieldName = '', operator = '', value = '', logicalOp = 'AND') {
+            ruleCount++;
+            const rulesContainer = document.getElementById('rulesContainer');
+            
+            const ruleDiv = document.createElement('div');
+            ruleDiv.className = 'rule-item';
+            ruleDiv.setAttribute('data-rule-id', ruleCount);
+            
+            ruleDiv.innerHTML = `
+                ${ruleCount > 1 ? `<div class="logical-operator">${logicalOp || 'AND'}</div>` : ''}
+                <div class="rule-row">
+                    <div class="form-group">
+                        <label>Field *</label>
+                        <select class="field-select" onchange="updateOperators(this)" required>
+                            <option value="">Select field...</option>
+                            <option value="amount" ${fieldName === 'amount' ? 'selected' : ''}>Amount</option>
+                            <option value="memo" ${fieldName === 'memo' ? 'selected' : ''}>Memo</option>
+                            <option value="number" ${fieldName === 'number' ? 'selected' : ''}>Number</option>
+                            <option value="date" ${fieldName === 'date' ? 'selected' : ''}>Date</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Operator *</label>
+                        <select class="operator-select" required>
+                            <option value="">Select operator...</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label>Value *</label>
+                        <input type="text" class="value-input" placeholder="Enter value" value="${value}" required>
+                    </div>
+                    <button type="button" class="btn btn-danger btn-small" onclick="removeRule(this)">✖</button>
+                </div>
+            `;
+            
+            rulesContainer.appendChild(ruleDiv);
+            
+          
+            if (operator) {
+                const fieldSelect = ruleDiv.querySelector('.field-select');
+                const operatorSelect = ruleDiv.querySelector('.operator-select');
+                updateOperators(fieldSelect);
+                operatorSelect.value = operator;
+            }
+            
+            updateDebug(`➕ Added rule ${ruleCount}: ${fieldName} ${operator} ${value}`);
+        }
+
+     
+        function removeRule(button) {
+            const ruleItem = button.closest('.rule-item');
+            const ruleId = ruleItem.getAttribute('data-rule-id');
+            ruleItem.remove();
+            ruleCount--;
+            updateLogicalOperators();
+            updateDebug(`Removed rule ${ruleId}`);
+        }
+
+        function updateOperators(fieldSelect) {
+            const operatorSelect = fieldSelect.closest('.rule-row').querySelector('.operator-select');
+            const fieldType = fieldSelect.value;
+            
+            operatorSelect.innerHTML = '<option value="">Select operator...</option>';
+            
+            if (fieldType === 'amount') {
+                operatorSelect.innerHTML += `
+                    <option value="<">Less than (<)</option>
+                    <option value=">">Greater than (>)</option>
+                    <option value="=">Equals (=)</option>
+                    <option value="<=">Less than or equal (<=)</option>
+                    <option value=">=">Greater than or equal (>=)</option>
+                    <option value="!=">Not equal (!=)</option>
+                `;
+            } else if (fieldType === 'memo' || fieldType === 'number') {
+                operatorSelect.innerHTML += `
+                    <option value="=">Equals (=)</option>
+                    <option value="!=">Not equal (!=)</option>
+                    <option value="starts with">Starts with</option>
+                    <option value="contains">Contains</option>
+                    <option value="ends with">Ends with</option>
+                `;
+            } else if (fieldType === 'date') {
+                operatorSelect.innerHTML += `
+                    <option value="=">On date (=)</option>
+                    <option value=">">After (>)</option>
+                    <option value="<">Before (<)</option>
+                `;
+            }
+        }
+
+       
+        function updateLogicalOperators() {
+            const ruleItems = document.querySelectorAll('.rule-item');
+            ruleItems.forEach((item, index) => {
+                const logicalOp = item.querySelector('.logical-operator');
+                if (index === 0 && logicalOp) {
+                    logicalOp.remove();
+                }
+            });
+        }
+
+       
+        document.getElementById('ruleForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            updateDebug(' Form submission started');
+            
+            const name = document.getElementById('ruleSetName').value.trim();
+            const description = document.getElementById('ruleSetDescription').value.trim();
+            
+            if (!name) {
+                showAlert('Please enter a rule set name', 'danger');
+                return;
+            }
+
+            const rules = [];
+            const ruleItems = document.querySelectorAll('.rule-item');
+            
+            updateDebug(` Processing ${ruleItems.length} rules`);
+            
+            for (let i = 0; i < ruleItems.length; i++) {
+                const item = ruleItems[i];
+                const fieldName = item.querySelector('.field-select').value;
+                const operator = item.querySelector('.operator-select').value;
+                const value = item.querySelector('.value-input').value.trim();
+                
+                if (!fieldName || !operator || !value) {
+                    showAlert(`Rule ${i + 1} is incomplete. Please fill all fields.`, 'danger');
+                    return;
+                }
+                
+                rules.push({
+                    fieldName: fieldName,
+                    operator: operator,
+                    value: value,
+                    order: i + 1,
+                    logicalOperator: i < ruleItems.length - 1 ? 'AND' : null
+                });
+                
+                updateDebug(` Rule ${i + 1}: ${fieldName} ${operator} ${value}`);
+            }
+
+            if (rules.length === 0) {
+                showAlert('Please add at least one rule', 'danger');
+                return;
+            }
+
+            const payload = {
+                name: name,
+                description: description,
+                createdBy: 'frontend-user',
+                rules: rules
+            };
+
+            updateDebug('📤 Sending payload: ' + JSON.stringify(payload, null, 2));
+
+            try {
+                document.getElementById('createRuleBtn').disabled = true;
+                document.getElementById('createRuleBtn').textContent = '⏳ Creating...';
+                
+                const response = await fetch(`${API_BASE}/rule-sets`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    mode: 'cors',
+                    body: JSON.stringify(payload)
+                });
+
+                updateDebug(` Response status: ${response.status}`);
+
+                const data = await response.json();
+                updateDebug(' Response data: ' + JSON.stringify(data, null, 2));
+                
+                if (response.ok) {
+                    currentRuleSetId = data.rule_set_id;
+                    showAlert(' Rule set created successfully! You can now validate transactions.', 'success');
+                    document.getElementById('validateBtn').disabled = false;
+                    document.getElementById('queryBtn').disabled = false;
+
+                    updateDebug(` Rule set created with ID: ${currentRuleSetId}`);
+                } else {
+                    showAlert(' Error creating rule set: ' + (data.message || 'Unknown error'), 'danger');
+                    updateDebug(` Error: ${data.message || 'Unknown error'}`);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert(' Network error: ' + error.message, 'danger');
+                updateDebug(` Network error: ${error.message}`);
+            } finally {
+                document.getElementById('createRuleBtn').disabled = false;
+                document.getElementById('createRuleBtn').textContent = ' Create Rule Set';
+            }
+        });
+
+        async function validateTransactions() {
+            if (!currentRuleSetId) {
+                showAlert('Please create a rule set first', 'danger');
+                return;
+            }
+
+            updateDebug('🔍 Starting validation...');
+            
+            document.getElementById('loadingIndicator').style.display = 'block';
+            document.getElementById('validationResults').style.display = 'none';
+            document.getElementById('validateBtn').disabled = true;
+            document.getElementById('queryBtn').disabled = false;
+
+            try {
+                const payload = { ruleSetId: currentRuleSetId };
+                updateDebug(' Validation payload: ' + JSON.stringify(payload));
+
+                const response = await fetch(`${API_BASE}/validate`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Accept': 'application/json'
+                    },
+                    mode: 'cors',
+                    body: JSON.stringify(payload)
+                });
+
+                updateDebug(` Validation response status: ${response.status}`);
+
+                const data = await response.json();
+                updateDebug('Validation response: ' + JSON.stringify(data, null, 2));
+                
+                if (response.ok) {
+                    displayResults(data);
+                    showAlert(' Validation completed successfully!', 'success');
+                } else {
+                    showAlert(' Error validating transactions: ' + (data.message || 'Unknown error'), 'danger');
+                    updateDebug(` Validation error: ${data.message || 'Unknown error'}`);
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                showAlert(' Network error during validation: ' + error.message, 'danger');
+                updateDebug(` Validation network error: ${error.message}`);
+            } finally {
+                document.getElementById('loadingIndicator').style.display = 'none';
+                document.getElementById('validateBtn').disabled = false;
+                document.getElementById('queryBtn').disabled = false;
+            }
+        }
+
+      // Add these functions to your JavaScript section
+
+// Toggle date input fields based on filter type
+function toggleDateInputs() {
+    const filterType = document.getElementById('dateFilterType').value;
+    const dateInputs = document.getElementById('dateInputs');
+    const dayMonthValue = document.getElementById('dayMonthValue');
+    const startDate = document.getElementById('startDate');
+    const endDate = document.getElementById('endDate');
+    const singleDate = document.getElementById('singleDate');
+
+    // Hide all inputs first
+    dateInputs.style.display = 'none';
+    dayMonthValue.style.display = 'none';
+    startDate.style.display = 'none';
+    endDate.style.display = 'none';
+    singleDate.style.display = 'none';
+
+    // Show relevant inputs based on selection
+    if (filterType === 'last_days' || filterType === 'last_months') {
+        dateInputs.style.display = 'block';
+        dayMonthValue.style.display = 'block';
+        dayMonthValue.placeholder = filterType === 'last_days' ? 'Number of days' : 'Number of months';
+    } else if (filterType === 'date_range') {
+        dateInputs.style.display = 'block';
+        startDate.style.display = 'inline-block';
+        endDate.style.display = 'inline-block';
+    } else if (filterType === 'before_date' || filterType === 'after_date') {
+        dateInputs.style.display = 'block';
+        singleDate.style.display = 'block';
+    } else if (filterType === 'current_month' || filterType === 'current_year') {
+        dateInputs.style.display = 'none';
+    }
+}
+
+// Build date filter object
+function buildDateFilter() {
+    const filterType = document.getElementById('dateFilterType').value;
+    
+    if (!filterType) return null;
+
+    const dateFilter = { type: filterType };
+
+    switch (filterType) {
+        case 'last_days':
+        case 'last_months':
+            const value = parseInt(document.getElementById('dayMonthValue').value);
+            if (value) dateFilter.value = value;
+            break;
+        
+        case 'date_range':
+            const startDate = document.getElementById('startDate').value;
+            const endDate = document.getElementById('endDate').value;
+            if (startDate && endDate) {
+                dateFilter.startDate = startDate;
+                dateFilter.endDate = endDate;
+            }
+            break;
+        
+        case 'before_date':
+        case 'after_date':
+            const singleDate = document.getElementById('singleDate').value;
+            if (singleDate) dateFilter.date = singleDate;
+            break;
+    }
+
+    return dateFilter;
+}
+
+// Update your existing queryTransactions function
+async function queryTransactions() {
+    if (!currentRuleSetId) {
+        showAlert('Please create a rule set first', 'danger');
+        return;
+    }
+
+    updateDebug('📊 Starting query...');
+    
+    document.getElementById('loadingIndicator').style.display = 'block';
+    document.getElementById('queryBtn').disabled = true;
+
+    try {
+        // Build payload with date filter
+        const payload = { 
+            ruleSetId: currentRuleSetId,
+            dateFilter: buildDateFilter()  // Add date filter
+        };
+        
+        updateDebug('📤 Query payload: ' + JSON.stringify(payload));
+
+        const response = await fetch(`${API_BASE}/query`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Accept': 'application/json'
+            },
+            mode: 'cors',
+            body: JSON.stringify(payload)
+        });
+
+        const data = await response.json();
+        
+        if (response.ok) {
+            // Show results with date filter info
+            document.getElementById('validationResults').style.display = 'block';
+            document.getElementById('totalCount').textContent = data.total_checked;
+            document.getElementById('validCount').textContent = data.total_matches;
+            document.getElementById('invalidCount').textContent = data.total_checked - data.total_matches;
+
+            const resultsContainer = document.getElementById('resultsContainer');
+            resultsContainer.innerHTML = `
+                <div class="result-header">
+                    Query Results: ${data.total_matches} matching transactions 
+                    ${data.date_filter !== 'All time' ? `(${data.date_filter})` : ''}
+                </div>
+            `;
+
+            data.transactions.forEach(transaction => {
+                const div = document.createElement('div');
+                div.className = 'result-item';
+                div.innerHTML = `
+                    <div class="transaction-info">
+                        <div class="transaction-number">${transaction.number}</div>
+                        <div style="font-size: 12px; color: #666;">
+                            Amount: $${transaction.amount} | Memo: "${transaction.memo}" | Date: ${transaction.date}
+                        </div>
+                    </div>
+                    <span class="status-badge status-valid">✓ Match</span>
+                `;
+                resultsContainer.appendChild(div);
+            });
+            
+            showAlert(' Query completed successfully!', 'success');
+        } else {
+            showAlert(' Error querying transactions: ' + data.message, 'danger');
+        }
+    } catch (error) {
+        showAlert(' Network error: ' + error.message, 'danger');
+    } finally {
+        document.getElementById('loadingIndicator').style.display = 'none';
+        document.getElementById('queryBtn').disabled = false;
+    }
+}
+        function displayResults(data) {
+            updateDebug(' Displaying results...');
+            
+            document.getElementById('validationResults').style.display = 'block';
+            
+          
+            document.getElementById('totalCount').textContent = data.summary.total_transactions;
+            document.getElementById('validCount').textContent = data.summary.valid_count;
+            document.getElementById('invalidCount').textContent = data.summary.invalid_count;
+
+          
+            const resultsContainer = document.getElementById('resultsContainer');
+            resultsContainer.innerHTML = '';
+
+            if (!data.results || data.results.length === 0) {
+                resultsContainer.innerHTML = '<div class="result-item">No transaction results found</div>';
+                return;
+            }
+
+            data.results.forEach(result => {
+                const resultDiv = document.createElement('div');
+                resultDiv.className = 'result-item';
+                
+                let errorDetails = '';
+                if (result.failed_rules && result.failed_rules.length > 0) {
+                    const errors = result.failed_rules.map(rule => rule.error_message || `${rule.field_name} ${rule.operator} ${rule.expected_value} failed`);
+                    errorDetails = `<div class="error-details">${errors.join(', ')}</div>`;
+                }
+
+                resultDiv.innerHTML = `
+                    <div class="transaction-info">
+                        <div class="transaction-number">${result.transaction_number || `Transaction ${result.transaction_id}`}</div>
+                        ${errorDetails}
+                    </div>
+                    <span class="status-badge ${result.is_valid ? 'status-valid' : 'status-invalid'}">
+                        ${result.is_valid ? '✓ Valid' : '✗ Invalid'}
+                    </span>
+                `;
+                
+                resultsContainer.appendChild(resultDiv);
+            });
+            
+            updateDebug(` Displayed ${data.results.length} results`);
+        }
+
+     
+        function toggleDebug() {
+            debugMode = !debugMode;
+            document.getElementById('debugInfo').style.display = debugMode ? 'block' : 'none';
+        }
+
+        async function queryTransactions() {
+    if (!currentRuleSetId) {
+        showAlert('Please create a rule set first', 'danger');
+        return;
+    }
+
+    updateDebug(' Starting query...');
+    
+    document.getElementById('loadingIndicator').style.display = 'block';
+    document.getElementById('queryBtn').disabled = true;
+
+    try {
+        const response = await fetch(`${API_BASE}/query`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ ruleSetId: currentRuleSetId })
+        });
+
+        const data = await response.json();
+        
+        if (response.ok) {
+           
+            document.getElementById('validationResults').style.display = 'block';
+            document.getElementById('totalCount').textContent = data.total_checked;
+            document.getElementById('validCount').textContent = data.total_matches;
+            document.getElementById('invalidCount').textContent = data.total_checked - data.total_matches;
+
+            const resultsContainer = document.getElementById('resultsContainer');
+            resultsContainer.innerHTML = `<div class="result-header">Query Results: ${data.total_matches} matching transactions</div>`;
+
+            data.transactions.forEach(transaction => {
+                const div = document.createElement('div');
+                div.className = 'result-item';
+                div.innerHTML = `
+                    <div class="transaction-info">
+                        <div class="transaction-number">${transaction.number}</div>
+                        <div style="font-size: 12px; color: #666;">
+                            Amount: $${transaction.amount} | Memo: "${transaction.memo}"
+                        </div>
+                    </div>
+                    <span class="status-badge status-valid">✓ Match</span>
+                `;
+                resultsContainer.appendChild(div);
+            });
+            
+            showAlert(' Query completed successfully!', 'success');
+        } else {
+            showAlert(' Error querying transactions: ' + data.message, 'danger');
+        }
+    } catch (error) {
+        showAlert(' Network error: ' + error.message, 'danger');
+    } finally {
+        document.getElementById('loadingIndicator').style.display = 'none';
+        document.getElementById('queryBtn').disabled = false;
+    }
+}
+
+      
+        window.addEventListener('error', function(e) {
+            updateDebug(`💥 JavaScript error: ${e.message} at ${e.filename}:${e.lineno}`);
+        });
+
+       
+        window.addEventListener('unhandledrejection', function(e) {
+            updateDebug(`💥 Unhandled promise rejection: ${e.reason}`);
+        });
+    </script>
+</body>
+</html>
