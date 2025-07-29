@@ -145,6 +145,4 @@ Try these example rules:
 4. Push: `git push origin my-feature`
 5. Create Pull Request
 
-## License
 
-MIT License
